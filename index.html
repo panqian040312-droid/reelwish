@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reelwish — One API gateway for video generation models</title>
+<meta name="description" content="Create, route, price, and deliver video generation tasks through one stable API. Text-to-video, image-to-video, first-frame, last-frame and reference workflows — without exposing upstream providers.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Reelwish — One API gateway for video generation models">
+<meta property="og:description" content="One stable API in front of every upstream video provider. Query prices before you spend, track cost per task.">
+<meta property="og:url" content="https://reelwish.cc">
+<meta property="og:image" content="https://reelwish.cc/logo.png">
+<meta name="theme-color" content="#08080A">
+<link rel="icon" href="https://reelwish.cc/logo.png">
+<style>
+  :root{
+    --bg:#08080A;
+    --bg-alt:#0E0E11;
+    --card:#121215;
+    --card-hi:#16161A;
+    --line:#25252B;
+    --line-hi:#3A3A44;
+    --fg:#F4F4F6;
+    --fg-dim:#9A9AA4;
+    --fg-faint:#6C6C77;
+    --accent:#7C5CFF;
+    --accent-2:#35D6ED;
+    --ok:#4ADE80;
+    --radius:14px;
+    --maxw:1120px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    top:-320px;left:50%;
+    transform:translateX(-50%);
+    width:1100px;height:700px;
+    background:radial-gradient(ellipse at center, rgba(124,92,255,.18), rgba(53,214,237,.06) 45%, transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;position:relative;z-index:1}
+  code,pre{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky;top:0;z-index:20;
+    backdrop-filter:blur(14px);
+    background:rgba(8,8,10,.78);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-in{
+    max-width:var(--maxw);margin:0 auto;padding:14px 24px;
+    display:flex;align-items:center;gap:26px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:-.01em;font-size:17px}
+  .brand img{width:24px;height:24px;border-radius:6px;display:block}
+  .nav-links{display:flex;gap:22px;margin-left:auto;font-size:14.5px;color:var(--fg-dim)}
+  .nav-links a:hover{color:var(--fg)}
+  .nav-cta{
+    font-size:14.5px;font-weight:600;
+    padding:8px 16px;border-radius:9px;
+    background:var(--fg);color:#0A0A0C;
+    transition:opacity .15s;
+  }
+  .nav-cta:hover{opacity:.86}
+
+  /* ---------- hero ---------- */
+  header.hero{padding:96px 0 64px;text-align:center}
+  .eyebrow{
+    display:inline-block;
+    font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent-2);
+    border:1px solid rgba(53,214,237,.28);
+    background:rgba(53,214,237,.07);
+    padding:5px 13px;border-radius:999px;
+    margin-bottom:26px;
+  }
+  h1{
+    font-size:clamp(34px,5.4vw,60px);
+    line-height:1.1;
+    letter-spacing:-.032em;
+    font-weight:700;
+    max-width:16em;margin:0 auto 22px;
+  }
+  h1 .grad{
+    background:linear-gradient(100deg,var(--accent) 0%,var(--accent-2) 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;
+  }
+  .lede{
+    font-size:clamp(16px,1.6vw,18.5px);
+    color:var(--fg-dim);
+    max-width:44em;margin:0 auto 34px;
+  }
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:15.5px;font-weight:600;
+    padding:13px 26px;border-radius:11px;
+    transition:transform .15s,opacity .15s,border-color .15s,background .15s;
+  }
+  .btn-primary{
+    background:linear-gradient(100deg,#7C5CFF,#5B7CFF);
+    color:#fff;
+    box-shadow:0 6px 26px rgba(124,92,255,.3);
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(124,92,255,.4)}
+  .btn-ghost{border:1px solid var(--line-hi);color:var(--fg)}
+  .btn-ghost:hover{background:var(--card-hi);transform:translateY(-2px)}
+
+  .stats{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:0;margin-top:60px;
+    border:1px solid var(--line);border-radius:var(--radius);
+    background:var(--card);overflow:hidden;
+  }
+  .stat{padding:22px 16px;text-align:center;border-right:1px solid var(--line)}
+  .stat:last-child{border-right:none}
+  .stat b{display:block;font-size:clamp(22px,2.6vw,30px);font-weight:700;letter-spacing:-.02em}
+  .stat span{display:block;font-size:12.5px;color:var(--fg-faint);margin-top:3px;letter-spacing:.01em}
+
+  /* ---------- section shell ---------- */
+  section{padding:76px 0}
+  .sec-head{margin-bottom:38px}
+  .sec-tag{
+    font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:11px;
+  }
+  h2{font-size:clamp(24px,3.1vw,34px);letter-spacing:-.026em;font-weight:680;line-height:1.22}
+  h2 + p{color:var(--fg-dim);margin-top:13px;max-width:46em}
+
+  /* ---------- terminal ---------- */
+  .terminal{
+    border:1px solid var(--line);border-radius:var(--radius);
+    background:#0B0B0E;overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:8px;
+    padding:12px 16px;border-bottom:1px solid var(--line);
+    background:#101013;
+  }
+  .dot{width:11px;height:11px;border-radius:50%}
+  .d1{background:#FF5F57}.d2{background:#FEBC2E}.d3{background:#28C840}
+  .term-title{margin-left:10px;font-size:12.5px;color:var(--fg-faint)}
+  .term-body{display:grid;grid-template-columns:1.55fr 1fr}
+  .term-col{padding:22px;overflow-x:auto}
+  .term-col + .term-col{border-left:1px solid var(--line);background:#0D0D10}
+  .term-label{
+    font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--fg-faint);margin-bottom:14px;
+  }
+  pre{font-size:13px;line-height:1.75;white-space:pre}
+  .c-key{color:#C792EA}
+  .c-str{color:#C3E88D}
+  .c-met{color:#82AAFF}
+  .c-url{color:#35D6ED}
+  .c-cmt{color:#5A5A66}
+  .c-num{color:#F78C6C}
+  .c-ok{color:var(--ok)}
+
+  /* ---------- two paths ---------- */
+  .paths{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .path{
+    border:1px solid var(--line);border-radius:var(--radius);
+    background:var(--card);padding:30px 28px;
+    transition:border-color .18s,transform .18s,background .18s;
+  }
+  .path:hover{border-color:var(--line-hi);background:var(--card-hi);transform:translateY(-3px)}
+  .path-ico{
+    width:42px;height:42px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:18px;font-size:19px;
+  }
+  .ico-violet{background:rgba(124,92,255,.14);border:1px solid rgba(124,92,255,.3)}
+  .ico-cyan{background:rgba(53,214,237,.12);border:1px solid rgba(53,214,237,.28)}
+  .path h3{font-size:19.5px;letter-spacing:-.018em;margin-bottom:9px;font-weight:660}
+  .path p{color:var(--fg-dim);font-size:14.8px}
+  .path ul{list-style:none;margin-top:18px;display:flex;flex-direction:column;gap:9px}
+  .path li{
+    font-size:14px;color:var(--fg-dim);
+    padding-left:20px;position:relative;
+  }
+  .path li::before{
+    content:"";position:absolute;left:0;top:9px;
+    width:6px;height:6px;border-radius:50%;
+    background:var(--accent);
+  }
+  .path-2 li::before{background:var(--accent-2)}
+  .path .go{
+    display:inline-block;margin-top:22px;
+    font-size:14.5px;font-weight:600;color:var(--accent-2);
+  }
+  .path-1 .go{color:var(--accent)}
+  .path .go:hover{text-decoration:underline}
+
+  /* ---------- endpoints ---------- */
+  .eps{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .ep{
+    display:flex;align-items:center;gap:14px;
+    border:1px solid var(--line);border-radius:11px;
+    background:var(--card);padding:15px 17px;
+    transition:border-color .16s,background .16s;
+  }
+  .ep:hover{border-color:var(--line-hi);background:var(--card-hi)}
+  .verb{
+    font-size:11px;font-weight:700;letter-spacing:.06em;
+    padding:4px 9px;border-radius:6px;
+    min-width:54px;text-align:center;flex-shrink:0;
+  }
+  .v-get{background:rgba(53,214,237,.13);color:#4FD6EA;border:1px solid rgba(53,214,237,.25)}
+  .v-post{background:rgba(124,92,255,.15);color:#A38CFF;border:1px solid rgba(124,92,255,.3)}
+  .ep code{font-size:13.4px;color:var(--fg);flex-shrink:0}
+  .ep .desc{font-size:13px;color:var(--fg-faint);margin-left:auto;text-align:right}
+
+  /* ---------- capabilities ---------- */
+  .caps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .cap{
+    border:1px solid var(--line);border-radius:var(--radius);
+    background:var(--card);padding:24px 22px;
+    transition:border-color .16s,transform .16s;
+  }
+  .cap:hover{border-color:var(--line-hi);transform:translateY(-3px)}
+  .cap h4{font-size:15.5px;font-weight:640;margin-bottom:8px;letter-spacing:-.012em}
+  .cap p{font-size:13.8px;color:var(--fg-dim)}
+
+  /* ---------- models ---------- */
+  .model-bar{
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;
+  }
+  .chip{
+    font-size:13.5px;font-weight:550;
+    padding:9px 17px;border-radius:9px;
+    border:1px solid var(--line);background:var(--card);
+    color:var(--fg-dim);
+    transition:color .16s,border-color .16s;
+  }
+  .chip:hover{color:var(--fg);border-color:var(--line-hi)}
+  .modes{
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;
+  }
+  .mode{
+    font-size:12.8px;
+    padding:7px 14px;border-radius:8px;
+    background:rgba(124,92,255,.09);
+    border:1px solid rgba(124,92,255,.22);
+    color:#B7A6FF;
+  }
+
+  /* ---------- steps ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:s}
+  .step{
+    border:1px solid var(--line);border-radius:var(--radius);
+    background:var(--card);padding:26px 22px;position:relative;
+  }
+  .step-n{
+    font-size:12px;font-weight:700;letter-spacing:.1em;
+    color:var(--accent-2);margin-bottom:12px;
+  }
+  .step h4{font-size:16px;font-weight:640;margin-bottom:8px}
+  .step p{font-size:13.8px;color:var(--fg-dim)}
+  .step code{font-size:12.6px;color:#C3E88D;background:rgba(195,232,141,.08);padding:1.5px 5px;border-radius:4px}
+
+  /* ---------- footer cta ---------- */
+  .final{
+    border:1px solid var(--line);border-radius:18px;
+    background:linear-gradient(160deg,rgba(124,92,255,.13),rgba(53,214,237,.06) 55%,var(--card));
+    padding:64px 32px;text-align:center;
+  }
+  .final h2{max-width:20em;margin:0 auto 16px}
+  .final p{color:var(--fg-dim);max-width:38em;margin:0 auto 30px}
+  footer{
+    border-top:1px solid var(--line);margin-top:80px;padding:34px 0 44px;
+    font-size:13.4px;color:var(--fg-faint);
+  }
+  .foot-in{max-width:var(--maxw);margin:0 auto;padding:0 24px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+  .foot-links{display:flex;gap:20px;flex-wrap:wrap}
+  .foot-links a:hover{color:var(--fg)}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    .term-body{grid-template-columns:1fr}
+    .term-col + .term-col{border-left:none;border-top:1px solid var(--line)}
+    .caps{grid-template-columns:1fr 1fr}
+    .paths{grid-template-columns:1fr}
+    .steps{grid-template-columns:1fr}
+  }
+  @media (max-width:680px){
+    header.hero{padding:64px 0 44px}
+    section{padding:54px 0}
+    .stats{grid-template-columns:1fr 1fr}
+    .stat{border-bottom:1px solid var(--line)}
+    .stat:nth-child(2){border-right:none}
+    .stat:nth-child(3),.stat:nth-child(4){border-bottom:none}
+    .eps{grid-template-columns:1fr}
+    .caps{grid-template-columns:1fr}
+    .nav-links{display:none}
+    .ep .desc{display:none}
+    .final{padding:44px 20px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <a class="brand" href="https://reelwish.cc">
+      <img src="https://reelwish.cc/logo.png" alt="Reelwish">
+      Reelwish
+    </a>
+    <div class="nav-links">
+      <a href="#developers">Developers</a>
+      <a href="#creators">Creators</a>
+      <a href="#endpoints">Endpoints</a>
+      <a href="https://reelwish.cc/docs">Docs</a>
+      <a href="https://reelwish.cc/pricing">Pricing</a>
+    </div>
+    <a class="nav-cta" href="https://reelwish.cc/sign-up">Get started</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Video AI Gateway</span>
+    <h1>One API gateway for <span class="grad">video generation models</span></h1>
+    <p class="lede">
+      Create, route, price, and deliver video generation tasks through one stable API.
+      Text, image, first-frame, last-frame and reference workflows — without exposing
+      upstream providers.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://reelwish.cc/sign-up">Get started →</a>
+      <a class="btn btn-ghost" href="https://reelwish.cc/docs">Read the docs</a>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b>17+</b><span>upstream services</span></div>
+      <div class="stat"><b>34+</b><span>model billing support</span></div>
+      <div class="stat"><b>17+</b><span>compatible API routes</span></div>
+      <div class="stat"><b>3+</b><span>scheduling controls</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="api">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">One stable endpoint</div>
+      <h2>Swap models, not integrations</h2>
+      <p>Your client points at <code style="color:#C3E88D;font-size:14px">https://reelwish.cc/v1</code> and stays there.
+      Upstream endpoints and upstream credentials never enter your codebase.</p>
+    </div>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span>
+        <span class="term-title">POST /v1/videos</span>
+      </div>
+      <div class="term-body">
+        <div class="term-col">
+          <div class="term-label">Request</div>
+<pre><span class="c-met">curl</span> -X POST <span class="c-url">https://reelwish.cc/v1/videos</span> \
+  -H <span class="c-str">"Authorization: Bearer sk-••••"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{
+    "model": "seedance-2-0-special",
+    "prompt": "A cinematic city at night",
+    "mode": "text_to_video",
+    "seconds": "5",
+    "aspect_ratio": "16:9",
+    "resolution": "720p"
+  }'</span></pre>
+        </div>
+        <div class="term-col">
+          <div class="term-label">Response · <span class="c-ok">200 ok</span></div>
+<pre>{
+  <span class="c-key">"task_id"</span>: <span class="c-str">"task_…"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"submitted"</span>,
+  <span class="c-key">"estimated_cost_usd"</span>: <span class="c-num">0.25</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="endpoints">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">Endpoints</div>
+      <h2>Six routes, one key</h2>
+      <p>Base URL <code style="color:#C3E88D;font-size:14px">https://reelwish.cc/v1</code> · Auth
+      <code style="color:#C3E88D;font-size:14px">Authorization: Bearer sk-your-api-key</code></p>
+    </div>
+
+    <div class="eps">
+      <div class="ep"><span class="verb v-get">GET</span><code>/v1/models</code><span class="desc">List available models</span></div>
+      <div class="ep"><span class="verb v-get">GET</span><code>/v1/video-prices</code><span class="desc">Current USD prices</span></div>
+      <div class="ep"><span class="verb v-post">POST</span><code>/v1/video-prices/estimate</code><span class="desc">Exact price for your params</span></div>
+      <div class="ep"><span class="verb v-post">POST</span><code>/v1/videos</code><span class="desc">Create a video task</span></div>
+      <div class="ep"><span class="verb v-get">GET</span><code>/v1/videos/{task_id}</code><span class="desc">Task status and result</span></div>
+      <div class="ep"><span class="verb v-get">GET</span><code>/v1/videos/{task_id}/content</code><span class="desc">Download the video</span></div>
+    </div>
+
+    <div class="modes">
+      <span class="mode">text_to_video</span>
+      <span class="mode">image_to_video</span>
+      <span class="mode">first-frame</span>
+      <span class="mode">last-frame</span>
+      <span class="mode">reference video</span>
+    </div>
+  </div>
+</section>
+
+<section id="developers">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">Two ways in</div>
+      <h2>Built for developers, open to everyone else</h2>
+    </div>
+
+    <div class="paths">
+      <div class="path path-1">
+        <div class="path-ico ico-violet">⌘</div>
+        <h3>For developers — the API</h3>
+        <p>One key, one request shape, every generation mode. Sign up, create a key, and
+        send your first task in minutes.</p>
+        <ul>
+          <li>Asynchronous tasks with a task ID you can poll</li>
+          <li>Query the price before you spend, not after</li>
+          <li>Per-task USD cost on every response</li>
+          <li>Pass <code style="color:#C3E88D;font-size:13px">X-Request-ID</code> to trace your own submissions</li>
+        </ul>
+        <a class="go" href="https://reelwish.cc/docs">Read the API docs →</a>
+      </div>
+
+      <div class="path path-2" id="creators">
+        <div class="path-ico ico-cyan">▶</div>
+        <h3>For creators — the Studio</h3>
+        <p>No code, no docs, no upstream accounts. Same gateway underneath, same USD
+        pricing, same task history — you just work in a browser.</p>
+        <ul>
+          <li>Pick a published model, see what it supports</li>
+          <li>Describe the shot, choose mode and resolution</li>
+          <li>Watch task status and cost as it runs</li>
+          <li>Download the finished video when it lands</li>
+        </ul>
+        <a class="go" href="https://reelwish.cc/dashboard">Open the console →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="capabilities">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">Under the hood</div>
+      <h2>What the gateway handles for you</h2>
+      <p>Everything between your request and the upstream provider — so a bad minute on
+      their side doesn't become a bad day on yours.</p>
+    </div>
+
+    <div class="caps">
+      <div class="cap">
+        <h4>Load balancing</h4>
+        <p>Requests spread across upstream services instead of piling onto one.</p>
+      </div>
+      <div class="cap">
+        <h4>Rate limiting &amp; retries</h4>
+        <p>Scheduling controls between you and the provider, so a busy upstream doesn't
+        fail your task outright.</p>
+      </div>
+      <div class="cap">
+        <h4>Cost tracking</h4>
+        <p>Real-time usage monitoring and per-task USD charges you can audit.</p>
+      </div>
+      <div class="cap">
+        <h4>Transparent billing</h4>
+        <p>Pay-as-you-go, priced per task. No monthly subscription, no unused credits.</p>
+      </div>
+      <div class="cap">
+        <h4>Multi-region delivery</h4>
+        <p>Deployed across regions for stable global access.</p>
+      </div>
+      <div class="cap">
+        <h4>Team collaboration</h4>
+        <p>Multi-user management with flexible permission allocation.</p>
+      </div>
+    </div>
+
+    <div class="model-bar">
+      <span class="chip">Seedance</span>
+      <span class="chip">Kling</span>
+      <span class="chip">Veo</span>
+      <span class="chip">Sora</span>
+      <span class="chip">Wan</span>
+      <span class="chip">Grok Video</span>
+      <span class="chip">+ more</span>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">How it works</div>
+      <h2>Three steps to get started</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">STEP 01</div>
+        <h4>Configure</h4>
+        <p>Select a published video model and one of its supported generation modes.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">STEP 02</div>
+        <h4>Create</h4>
+        <p>Submit a <code>text_to_video</code>, image, first-frame, last-frame or
+        reference task and get a task ID back.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">STEP 03</div>
+        <h4>Monitor</h4>
+        <p>Track status, USD charges, retries and the finished video in one place.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="final">
+    <h2>Ready to route every video model through one endpoint?</h2>
+    <p>Create an account, grab a key, and send your first task. Prices are visible before
+    you spend — on every single request.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://reelwish.cc/sign-up">Get started free →</a>
+      <a class="btn btn-ghost" href="https://reelwish.cc/pricing">See model prices</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-in">
+    <span>© 2026 Reelwish — Affordable, high-quality AI video generation for creators worldwide.</span>
+    <div class="foot-links">
+      <a href="https://reelwish.cc">reelwish.cc</a>
+      <a href="https://reelwish.cc/docs">Docs</a>
+      <a href="https://reelwish.cc/pricing">Pricing</a>
+      <a href="https://reelwish.cc/rankings">Rankings</a>
+      <a href="https://reelwish.cc/about">About</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
